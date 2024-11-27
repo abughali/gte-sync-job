@@ -3,7 +3,7 @@ import os
 import pandas as pd
 import requests
 import xml.etree.ElementTree as ET
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from ratelimit import limits, sleep_and_retry
 from concurrent.futures import ThreadPoolExecutor as PoolExecutor
 import json
@@ -535,7 +535,7 @@ def send_bills_to_api(bills):
 
 def main():
     
-    yesterday = datetime.now(datetime.timezone.utc)- timedelta(days=1)
+    yesterday = datetime.now(timezone.utc)- timedelta(days=1)
     formatted_date = yesterday.strftime("%Y%m%d")
     from_date = formatted_date
     to_date = formatted_date
