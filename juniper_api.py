@@ -3,7 +3,7 @@ import os
 import pandas as pd
 import requests
 import xml.etree.ElementTree as ET
-from datetime import datetime
+from datetime import datetime, timedelta
 from ratelimit import limits, sleep_and_retry
 from concurrent.futures import ThreadPoolExecutor as PoolExecutor
 
@@ -473,15 +473,15 @@ def fetch_bills(invoice_date_from, invoice_date_to):
     return bill_count, bill_line_count, filtered_df
 
 def main():
-        
-    from_date = '20240907'
-    to_date = '20240907'
+    
+    yesterday = datetime.now() - timedelta(days=1)
+    formatted_date = yesterday.strftime("%Y%m%d")
+    from_date = formatted_date
+    to_date = formatted_date
     fetch_and_populate_suppliers()
     invoice_count, invoice_line_count, invoices = fetch_invoices(from_date, to_date)
-    print(invoices)
     print("Done " + str(invoice_count) + " " + str(invoice_line_count))
     bill_count, bill_line_count, bills = fetch_bills(from_date, to_date)
-    print(bills)
     print("Done " + str(bill_count) + " " + str(bill_line_count))
 
 if __name__ == "__main__":
