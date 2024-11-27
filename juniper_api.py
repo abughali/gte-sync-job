@@ -535,7 +535,7 @@ def send_bills_to_api(bills):
 
 def main():
     
-    yesterday = datetime.now() - timedelta(days=1)
+    yesterday = datetime.now(datetime.timezone.utc)- timedelta(days=1)
     formatted_date = yesterday.strftime("%Y%m%d")
     from_date = formatted_date
     to_date = formatted_date
