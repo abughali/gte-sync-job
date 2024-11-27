@@ -6,11 +6,16 @@ import xml.etree.ElementTree as ET
 from datetime import datetime, timedelta
 from ratelimit import limits, sleep_and_retry
 from concurrent.futures import ThreadPoolExecutor as PoolExecutor
+import json
 
 load_dotenv()
 
 GTE_USER=os.environ["GTE_USER"]
 GTE_PASSWORD=os.environ["GTE_PASSWORD"]
+API_URL=os.environ["API_URL"]
+API_KEY=os.environ["API_KEY"]
+
+
 
 # Define the global supplier list
 supplierList = []
@@ -472,6 +477,62 @@ def fetch_bills(invoice_date_from, invoice_date_to):
 
     return bill_count, bill_line_count, filtered_df
 
+
+def send_invoices_to_api(invoices):
+    url = f"{API_URL}/invoices"
+    headers = {
+        'X-API-KEY': API_KEY,
+        'Content-Type': 'application/json'
+    }
+
+    for _, row in invoices.iterrows():
+        payload = json.dumps({
+            "invoiceNo": row["Invoice No"],
+            "invoiceDate": row["InvoiceDate"],
+            "serviceDate": row["Service Date"],
+            "currency": row["Currency"],
+            "customerName": row["CustomerName"],
+            "bookingCode": row["Booking Code"],
+            "itemAmount": row["Item Amount"],
+            "taxes": row["Taxes"],
+            "itemDescription": row["Item Description"],
+            "taxCode": row["Tax Code"],
+            "service": row["Service"],
+            "accountManager": row["Account Manager"],
+            "paymentTerms": row["Payment Terms"],
+            "location": row["Location"]
+        })
+
+        response = requests.post(url, headers=headers, data=payload)
+        print(f"Invoice {row['Invoice No']} - Status Code: {response.status_code}")
+
+def send_bills_to_api(bills):
+    url = f"{API_URL}/bills"
+    headers = {
+        'X-API-KEY': API_KEY,
+        'Content-Type': 'application/json'
+    }
+
+    for _, row in bills.iterrows():
+        payload = json.dumps({
+            "billNo": row["Bill No"],
+            "billDate": row["Bill Date"],
+            "dueDate": row["DueDate"],
+            "currency": row["Currency"],
+            "supplier": row["Supplier"],
+            "bookingCode": row["Booking Code"],
+            "lineAmount": row["Line Amount"],
+            "lineTaxAmount": row["Line Tax Amount"],
+            "lineDescription": row["Line Description"],
+            "lineTaxCode": row["Line Tax Code"],
+            "account": row["Account"],
+            "customer": row["Customer"],
+            "product": row["Product"]
+        })
+
+        response = requests.post(url, headers=headers, data=payload)
+        print(f"Bill {row['Bill No']} - Status Code: {response.status_code}")
+
 def main():
     
     yesterday = datetime.now() - timedelta(days=1)
@@ -480,9 +541,12 @@ def main():
     to_date = formatted_date
     fetch_and_populate_suppliers()
     invoice_count, invoice_line_count, invoices = fetch_invoices(from_date, to_date)
-    print("Done " + str(invoice_count) + " " + str(invoice_line_count))
+    send_invoices_to_api(invoices)
+    print("Done Invoices: " + str(invoice_count) + " " + str(invoice_line_count))
+
     bill_count, bill_line_count, bills = fetch_bills(from_date, to_date)
-    print("Done " + str(bill_count) + " " + str(bill_line_count))
+    send_bills_to_api(bills)
+    print("Done Bills: " + str(bill_count) + " " + str(bill_line_count))
 
 if __name__ == "__main__":
     main()
