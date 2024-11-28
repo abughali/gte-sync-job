@@ -527,14 +527,21 @@ def main():
     from_date = to_date = yesterday.strftime("%Y%m%d")
     
     fetch_and_populate_suppliers()
-    
+    print("Done Suppliers")
+
     invoice_count, invoice_line_count, invoices = fetch_invoices(from_date, to_date)
+    print("Invoices: " + str(invoice_count) + " " + str(invoice_line_count))
+
     send_invoices_to_api(invoices)
-    print("Done Invoices: " + str(invoice_count) + " " + str(invoice_line_count))
+    print("Done Invoices")
 
     bill_count, bill_line_count, bills = fetch_bills(from_date, to_date)
+    print("Bills: " + str(bill_count) + " " + str(bill_line_count))
+
     send_bills_to_api(bills)
-    print("Done Bills: " + str(bill_count) + " " + str(bill_line_count))
+    print("Done Invoices")
+
 
 if __name__ == "__main__":
+    print("Starting Juniper main function")
     main()
