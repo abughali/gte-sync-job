@@ -490,9 +490,14 @@ def send_invoices_to_api(invoices):
             "paymentTerms": row["Payment Terms"],
             "location": row["Location"]
         })
-
-        response = requests.post(url, headers=headers, data=payload)
-        print(f"Invoice {row['Invoice No']} - Status Code: {response.status_code}")
+        
+        try:
+            response = requests.post(url, headers=headers, data=payload, timeout=60)
+            print(f"Invoice {row['Invoice No']} - Status Code: {response.status_code}")
+        except requests.exceptions.Timeout:
+            print(f"Invoice {row['Invoice No']} - Request timed out.")
+        except requests.exceptions.RequestException as e:
+            print(f"Invoice {row['Invoice No']} - Request failed: {e}")    
 
 def send_bills_to_api(bills):
     url = f"{API_URL}/bills"
@@ -517,9 +522,14 @@ def send_bills_to_api(bills):
             "customer": row["Customer"],
             "product": row["Product"]
         })
-
-        response = requests.post(url, headers=headers, data=payload)
-        print(f"Bill {row['Bill No']} - Status Code: {response.status_code}")
+        
+        try:
+            response = requests.post(url, headers=headers, data=payload, timeout=60)
+            print(f"Bill {row['Bill No']} - Status Code: {response.status_code}")
+        except requests.exceptions.Timeout:
+            print(f"Bill {row['Bill No']} - Request timed out.")
+        except requests.exceptions.RequestException as e:
+            print(f"Bill {row['Bill No']} - Request failed: {e}")  
 
 def main():
     
