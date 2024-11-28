@@ -15,7 +15,17 @@ GTE_PASSWORD=os.environ["GTE_PASSWORD"]
 API_URL=os.environ["API_URL"]
 API_KEY=os.environ["API_KEY"]
 
+# Function to remove time from datetime string
+def format_date(date_str):
+    if date_str:
+        return datetime.strptime(date_str, "%Y-%m-%dT%H:%M:%S").strftime("%Y-%m-%d")
+    return ""
 
+# Function for currency conversion
+def currency_converter(amount, cost_rate, sell_rate):
+    first_conversion = amount * cost_rate
+    final_conversion = first_conversion * sell_rate
+    return round(final_conversion, 2)
 
 # Define the global supplier list
 supplierList = []
@@ -96,13 +106,6 @@ def get_product_and_account(supplier_id):
         if supplier["Supplier Id"] == supplier_id:
             return supplier["Product Name"], supplier["Account Name"]
     return "NA", "NA"
-
-# Function to remove time from datetime string
-def format_date(date_str):
-    if date_str:
-        return datetime.strptime(date_str, "%Y-%m-%dT%H:%M:%S").strftime("%Y-%m-%d")
-    return ""
-
 
 def fetch_invoice_details(invoice_date_from, invoice_date_to):
     # URL and headers
@@ -335,17 +338,6 @@ def fetch_customer_info_concurrently(customer_ids, max_workers=1000):
             results.extend(result)
     return results
 
-# Function to remove time from datetime string
-def format_date(date_str):
-    if date_str:
-        return datetime.strptime(date_str, "%Y-%m-%dT%H:%M:%S").strftime("%Y-%m-%d")
-    return ""
-
-# Function for currency conversion
-def currency_converter(amount, cost_rate, sell_rate):
-    first_conversion = amount * cost_rate
-    final_conversion = first_conversion * sell_rate
-    return round(final_conversion, 2)
 
 # Fetch bills function
 def get_bill_details(invoice_date_from, invoice_date_to):
@@ -422,10 +414,8 @@ def get_bill_details(invoice_date_from, invoice_date_to):
         print(f"Failed to fetch invoices. Status code: {response.status_code}")
         return pd.DataFrame()
 
+# Add suffixes to duplicate Bill No where there are multiple suppliers.
 def add_suffix_to_duplicate_bills(df):
-    """
-    Adds suffixes to duplicate Bill No where there are multiple suppliers.
-    """
     # Identify duplicate 'Bill No' with different suppliers
     duplicate_bills = df.groupby('Bill No').filter(lambda x: x['Supplier'].nunique() > 1)
 
@@ -439,8 +429,6 @@ def add_suffix_to_duplicate_bills(df):
             df.loc[(df['Bill No'] == bill_no) & (df['Supplier'] == supplier), 'Bill No'] += suffix
 
     return df
-
-
 
 
 def fetch_invoices(invoice_date_from, invoice_date_to):
@@ -536,10 +524,10 @@ def send_bills_to_api(bills):
 def main():
     
     yesterday = datetime.now(timezone.utc)- timedelta(days=1)
-    formatted_date = yesterday.strftime("%Y%m%d")
-    from_date = formatted_date
-    to_date = formatted_date
+    from_date = to_date = yesterday.strftime("%Y%m%d")
+    
     fetch_and_populate_suppliers()
+    
     invoice_count, invoice_line_count, invoices = fetch_invoices(from_date, to_date)
     send_invoices_to_api(invoices)
     print("Done Invoices: " + str(invoice_count) + " " + str(invoice_line_count))
