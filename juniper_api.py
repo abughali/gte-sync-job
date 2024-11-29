@@ -535,6 +535,8 @@ def main():
     
     yesterday = datetime.now(timezone.utc)- timedelta(days=1)
     from_date = to_date = yesterday.strftime("%Y%m%d")
+
+    print("Fetching data for Date: " + from_date)
     
     fetch_and_populate_suppliers()
     print("Done Suppliers")
